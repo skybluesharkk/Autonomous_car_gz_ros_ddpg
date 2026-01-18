@@ -13,3 +13,10 @@
 - RGB camera image (front-facing camera)
 - IMU (angular velocity and linear acceleration)
 - Odometry (estimated robot pose and velocity)
+
+## dependencies
+
+````bash
+conda activate hanyang_robot
+conda env export > environment.yml```
+````
