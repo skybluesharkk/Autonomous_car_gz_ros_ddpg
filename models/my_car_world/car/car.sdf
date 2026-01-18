@@ -1,0 +1,203 @@
+<!-- car model자체를 정의하기 위한 파일-->
+<sdf version="1.10">
+    <model name='car' canonical_link='chassis::chassis_link'>
+        <include>
+            <uri>model://chassis</uri>
+            <name>chassis</name>
+            <pose>0 0 0.4 0 0 0</pose>
+        </include>
+        <pose>0 0 0 0 0 0</pose>
+        <!-- LIDAR를 위한 frame은 차체가 아닌 model 아래에 정의.-->
+        <frame name="lidar_frame" attached_to='chassis::chassis_link'>
+            <pose>1.05 0 0.5 0 0 0</pose>
+        </frame>
+        <!-- tire라는 모듈을 정의 후 불러오기-->
+        <include>
+            <uri>model://tire</uri>
+            <name>left_front_wheel</name>
+            <pose>0.5 0.6 0.4 -1.5707 0 0</pose>
+        </include>
+        <include>
+            <uri>model://tire</uri>
+            <name>right_front_wheel</name>
+            <pose>0.5 -0.6 0.4 -1.5707 0 0</pose>
+        </include>
+        <include>
+            <uri>model://tire</uri>
+            <name>left_rear_wheel</name>
+            <pose>-0.5 0.6 0.4 -1.5707 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tire</uri>
+            <name>right_rear_wheel</name>
+            <pose>-0.5 -0.6 0.4 -1.5707 0 0</pose>
+        </include>
+        <include>
+            <uri>model://knuckle</uri>
+            <name>left_steering_knuckle</name>
+            <pose>0.5 0.6 0.4 0 0 0</pose>
+
+        </include>
+        <joint name='left_steering_joint' type='revolute'>
+            <parent>chassis::chassis_link</parent>
+            <child>left_steering_knuckle::knuckle_link</child>
+            <axis>
+                <xyz>0 0 1</xyz>
+                <limit>
+                    <lower>-0.6</lower>
+                    <upper>0.6</upper>
+                    <effort>1000000</effort>
+                </limit>
+            </axis>
+        </joint>
+        <joint name='left_front_wheel_joint' type='revolute'>
+            <pose relative_to='left_front_wheel' />
+            <parent>left_steering_knuckle::knuckle_link</parent>
+            <child>left_front_wheel::tire_link</child>
+            <axis>
+                <xyz expressed_in='__model__'>0 1 0</xyz> <!--can
+                    be defined as any frame or even arbitrary frames-->
+                <limit>
+                    <lower>-1.79769e+308</lower>    <!--negative
+                        infinity-->
+                    <upper>1.79769e+308</upper>     <!--positive
+                        infinity-->
+                </limit>
+            </axis>
+        </joint>
+        <include>
+            <uri>model://knuckle</uri>
+            <name>right_steering_knuckle</name>
+            <pose>0.5 -0.6 0.4 0 0 0</pose>
+        </include>
+        <joint name='right_steering_joint' type='revolute'>
+            <parent>chassis::chassis_link</parent>
+            <child>right_steering_knuckle::knuckle_link</child>
+            <axis>
+                <xyz>0 0 1</xyz>
+                <limit>
+                    <lower>-0.6</lower>
+                    <upper>0.6</upper>
+                    <effort>1000000</effort>
+                </limit>
+            </axis>
+        </joint>
+        <joint name='right_front_wheel_joint' type='revolute'>
+            <pose relative_to='right_front_wheel' />
+            <parent>right_steering_knuckle::knuckle_link</parent>
+            <child>right_front_wheel::tire_link</child>
+            <axis>
+                <xyz expressed_in='__model__'>0 1 0</xyz> <!--can
+                    be defined as any frame or even arbitrary frames-->
+                <limit>
+                    <lower>-1.79769e+308</lower>    <!--negative
+                        infinity-->
+                    <upper>1.79769e+308</upper>     <!--positive
+                        infinity-->
+                </limit>
+            </axis>
+        </joint>
+        <joint name='left_rear_wheel_joint' type='revolute'>
+            <pose relative_to='left_rear_wheel' />
+            <parent>chassis::chassis_link</parent>
+            <child>left_rear_wheel::tire_link</child>
+            <axis>
+                <xyz expressed_in='__model__'>0 1 0</xyz> <!--can
+                    be defined as any frame or even arbitrary frames-->
+                <limit>
+                    <lower>-1.79769e+308</lower>    <!--negative
+                        infinity-->
+                    <upper>1.79769e+308</upper>     <!--positive
+                        infinity-->
+                </limit>
+            </axis>
+        </joint>
+        <joint name='right_rear_wheel_joint' type='revolute'>
+            <pose relative_to='right_rear_wheel' />
+            <parent>chassis::chassis_link</parent>
+            <child>right_rear_wheel::tire_link</child>
+            <axis>
+                <xyz expressed_in='__model__'>0 1 0</xyz> <!--can
+                    be defined as any frame or even arbitrary frames-->
+                <limit>
+                    <lower>-1.79769e+308</lower>    <!--negative
+                        infinity-->
+                    <upper>1.79769e+308</upper>     <!--positive
+                        infinity-->
+
+                </limit>
+            </axis>
+        </joint>
+
+        <!-- 플러그인 코드 모음-->
+        <plugin
+            filename="gz-sim-ackermann-steering-system"
+            name="gz::sim::systems::AckermannSteering">
+            <!-- topic을 아래와 같이 열어놓고 통일해놔야 명확하게 듣고 동작 가능-->
+            <topic>/cmd_vel</topic>
+            <left_steering_joint>left_steering_joint</left_steering_joint>
+            <right_steering_joint>right_steering_joint</right_steering_joint>
+
+            <left_joint>left_rear_wheel_joint</left_joint>
+            <right_joint>right_rear_wheel_joint</right_joint>
+
+            <wheel_base>1.0</wheel_base>
+            <wheel_separation>1.2</wheel_separation>
+            <wheel_radius>0.4</wheel_radius>
+
+            <!-- 실제로 주행한 바퀴를 통해 구한 odometry를 사용하기 위해 한 플러그인에서 발행.-->
+            <!-- 내가 지금 얼마 정도로 가고 있다는 정보-->
+            <odom_topic>/model/car/odometry</odom_topic>
+            <!-- 내가 지금 맵상에 어디에 있고 어느 쪽을 보고 있는 지 위치 정보를 정의-->
+            <tf_topic>/model/car/tf</tf_topic>
+            <!-- (부모); 기준이 되는 좌표계 얘를 기준으로 함-->
+            <frame_id>odom</frame_id>
+            <!-- (자식); 움직이는 좌표계의 본체-->
+            <child_frame_id>chassis::chassis_link</child_frame_id>
+            <odom_publish_frequency>30</odom_publish_frequency>
+        </plugin>
+        <!-- Moving Forward 전진하는 키보드를 눌렀을떄 나오는 값에 해당하는 명령어를 할당해놓는 거임.-->
+
+        <plugin filename="gz-sim-triggered-publisher-system"
+            name="gz::sim::systems::TriggeredPublisher">
+            <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                <match field="data">16777235</match>
+            </input>
+            <output type="gz.msgs.Twist" topic="/cmd_vel">
+                linear: {x: 0.5}, angular: {z: 0.0}
+            </output>
+        </plugin>
+        <!-- 후진 -->
+        <plugin filename="gz-sim-triggered-publisher-system"
+            name="gz::sim::systems::TriggeredPublisher">
+            <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                <match field="data">16777237</match>
+            </input>
+            <output type="gz.msgs.Twist" topic="/cmd_vel">
+                linear: {x: -0.5}, angular: {z: 0.0}
+            </output>
+        </plugin>
+        <!-- 좌회전 -->
+        <plugin filename="gz-sim-triggered-publisher-system"
+            name="gz::sim::systems::TriggeredPublisher">
+            <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                <match field="data">16777234</match>
+            </input>
+            <output type="gz.msgs.Twist" topic="/cmd_vel">
+                linear: {x: 0.2}, angular: {z: 0.5}
+            </output>
+        </plugin>
+        <!-- 우회전 -->
+        <plugin filename="gz-sim-triggered-publisher-system"
+            name="gz::sim::systems::TriggeredPublisher">
+            <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                <match field="data">16777236</match>
+            </input>
+            <output type="gz.msgs.Twist" topic="/cmd_vel">
+                linear: {x: 0.2}, angular: {z: -0.5}
+            </output>
+        </plugin>
+
+    </model>
+</sdf>
