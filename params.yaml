@@ -1,0 +1,20 @@
+# ddpg 실험을 위한 하이퍼 파라미터 모음
+ddpg_:
+  ros__parameters:
+    max_range: 10.0
+    img_width: 64
+    img_height: 64
+    map_width: 30.0
+    map_height: 30.0
+    max_step: 1000
+    max_episode: 1000
+    max_buffer_size: 100000 # 논문에서는 10^6으로 진행하였다고 함, ram 문제로 줄여서 진행함.
+    actor_lr : 5e-5
+    critic_lr : 1e-4
+    critic_l2_decay : 1e-2
+    gamma : 0.99
+    tau : 0.001
+    theta : 0.15
+    sigma : 0.2
+    mu : 0.0
+    batch_size : 64
